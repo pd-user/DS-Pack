@@ -9,6 +9,7 @@ const AppState = {
     currentStep: 0,
     formData: {},
     photos: {},
+    itemNotes: {}, // 新增：存儲每一項的備註
     currentRecordId: null
 };
 
@@ -69,6 +70,7 @@ function cacheElements() {
     Elements.photoSection = document.getElementById('photo-section');
     Elements.photoPreviewGrid = document.getElementById('photo-preview-grid');
     Elements.cameraInput = document.getElementById('camera-input');
+    Elements.itemNote = document.getElementById('item-note'); // 新增
 
     // 資訊顯示
     Elements.infoCustomer = document.getElementById('info-customer');
@@ -140,8 +142,9 @@ function bindEvents() {
     document.getElementById('btn-backup').addEventListener('click', handleBackup);
     document.getElementById('import-input').addEventListener('change', handleImport);
 
-    // 刪除記錄
+    // 刪除與編輯記錄
     document.getElementById('btn-delete-record').addEventListener('click', handleDeleteRecord);
+    document.getElementById('btn-edit-record').addEventListener('click', handleEditRecord);
 
     // 設定頁面
     document.getElementById('btn-settings').addEventListener('click', () => {
@@ -194,6 +197,12 @@ function showPage(pageName) {
 function handleFormSubmit(e) {
     e.preventDefault();
 
+    // 如果不是從編輯模式進來的（標題被改過），就確保 ID 是空的
+    const header = Elements.pageHome.querySelector('.app-header h1');
+    if (!header.textContent.includes('編輯')) {
+        AppState.currentRecordId = null;
+    }
+
     AppState.formData = {
         date: Elements.inputDate.value,
         customer: Elements.inputCustomer.value.trim(),
@@ -201,9 +210,11 @@ function handleFormSubmit(e) {
         notes: Elements.inputNotes.value.trim()
     };
 
-    // 重置照片狀態
+    // 重置狀態
     AppState.photos = {};
+    AppState.itemNotes = {}; // 重置
     AppState.currentStep = 0;
+    Elements.itemNote.value = ''; // 清空輸入框
 
     // 更新資訊顯示
     Elements.infoCustomer.textContent = AppState.formData.customer;
@@ -250,6 +261,9 @@ function updateCameraStep() {
 
     // 更新照片預覽
     updatePhotoPreview();
+
+    // 載入該項目的備註
+    Elements.itemNote.value = AppState.itemNotes[category.id] || '';
 }
 
 /**
@@ -319,22 +333,30 @@ async function handlePhotoInput(e) {
 /**
  * 上一步
  */
-function handlePrevStep() {
-    if (AppState.currentStep > 0) {
-        AppState.currentStep--;
-        updateCameraStep();
-    }
-}
-
-/**
- * 下一步
- */
 function handleNextStep() {
+    // 切換前，先儲存當前項目的備註
+    const currentCategory = PhotoCamera.getCategories()[AppState.currentStep];
+    AppState.itemNotes[currentCategory.id] = Elements.itemNote.value.trim();
+
     if (AppState.currentStep < PhotoCamera.getCategories().length - 1) {
         AppState.currentStep++;
         updateCameraStep();
     } else {
         showCompletePage();
+    }
+}
+
+/**
+ * 處理上一步
+ */
+function handlePrevStep() {
+    // 切換前，先儲存當前項目的備註
+    const currentCategory = PhotoCamera.getCategories()[AppState.currentStep];
+    AppState.itemNotes[currentCategory.id] = Elements.itemNote.value.trim();
+
+    if (AppState.currentStep > 0) {
+        AppState.currentStep--;
+        updateCameraStep();
     }
 }
 
@@ -365,14 +387,17 @@ function showCompletePage() {
 
     PhotoCamera.getCategories().forEach(cat => {
         const photos = AppState.photos[cat.id];
-        if (photos === null) {
-            summaryHTML += `<div class="summary-photo-category"><h4>${cat.name} ${cat.nameEn}: 跳過 Skipped</h4></div>`;
-        } else if (photos && photos.length > 0) {
+        const note = AppState.itemNotes[cat.id];
+
+        if (photos === null && !note) {
+            // 跳過且無備註時不顯示
+        } else {
             summaryHTML += `
                 <div class="summary-photo-category">
-                    <h4>${cat.name} ${cat.nameEn} (${photos.length})</h4>
+                    <h4>${cat.name} ${cat.nameEn} ${photos === null ? '(跳過 Skip)' : `(${photos ? photos.length : 0})`}</h4>
+                    ${note ? `<p class="item-summary-note">📝 ${note}</p>` : ''}
                     <div class="summary-photo-grid">
-                        ${photos.map(p => `<img src="${p.data}" alt="${cat.name}">`).join('')}
+                        ${photos && photos.length > 0 ? photos.map(p => `<img src="${p.data}" alt="${cat.name}">`).join('') : ''}
                     </div>
                 </div>
             `;
@@ -391,11 +416,20 @@ async function handleSaveRecord() {
     try {
         const record = {
             ...AppState.formData,
-            photos: AppState.photos
+            photos: AppState.photos,
+            itemNotes: AppState.itemNotes // 包含項目備註
         };
 
+        // 如果目前是編輯模式，則帶入 ID
+        if (AppState.currentRecordId && AppState.currentPage === 'complete') {
+            record.id = AppState.currentRecordId;
+        }
+
         await PhotoDB.saveRecord(record);
-        showToast('記錄已儲存 Record saved!', 'success');
+        showToast(record.id ? '記錄已更新 Record updated!' : '記錄已儲存 Record saved!', 'success');
+
+        // 重置狀態
+        AppState.currentRecordId = null;
 
         // 重置表單
         Elements.dataForm.reset();
@@ -506,16 +540,19 @@ async function showRecordDetail(id) {
 
         PhotoCamera.getCategories().forEach(cat => {
             const photos = record.photos?.[cat.id];
-            if (photos && photos.length > 0) {
+            const note = record.itemNotes?.[cat.id];
+
+            if ((photos && photos.length > 0) || note) {
                 detailHTML += `
                     <div class="detail-photo-category">
-                        <h3>${cat.name} ${cat.nameEn} (${photos.length})</h3>
+                        <h3>${cat.name} ${cat.nameEn} ${photos ? `(${photos.length})` : ''}</h3>
+                        ${note ? `<p class="item-detail-note">📝 ${note}</p>` : ''}
                         <div class="detail-photo-grid">
-                            ${photos.map(p => `
+                            ${photos ? photos.map(p => `
                                 <div class="detail-photo-item">
                                     <img src="${p.data}" alt="${cat.name}" onclick="PhotoCamera.showPhotoViewer('${p.data}')">
                                 </div>
-                            `).join('')}
+                            `).join('') : ''}
                         </div>
                     </div>
                 `;
@@ -527,6 +564,45 @@ async function showRecordDetail(id) {
         showPage('detail');
     } catch (error) {
         console.error('Error loading detail:', error);
+    }
+}
+
+/**
+ * 處理編輯記錄
+ */
+async function handleEditRecord() {
+    if (!AppState.currentRecordId) return;
+
+    try {
+        const record = await PhotoDB.getRecord(AppState.currentRecordId);
+        if (!record) return;
+
+        // 回填表單資料
+        Elements.inputDate.value = record.date;
+        Elements.inputCustomer.value = record.customer;
+        Elements.inputDestination.value = record.destination;
+        Elements.inputNotes.value = record.notes || '';
+
+        // 更新 App 狀態
+        AppState.formData = {
+            date: record.date,
+            customer: record.customer,
+            destination: record.destination,
+            notes: record.notes
+        };
+        AppState.photos = record.photos || {};
+        AppState.itemNotes = record.itemNotes || {}; // 回填項目備註
+
+        // 顯示表單頁面
+        showPage('home');
+
+        // 更新表單中的標題，提示正在編輯
+        const header = Elements.pageHome.querySelector('.app-header h1');
+        header.innerHTML = `✏️ 正在編輯模式<br><small>${record.customer}</small>`;
+
+    } catch (error) {
+        console.error('Error starting edit:', error);
+        showToast('載入編輯失敗', 'error');
     }
 }
 

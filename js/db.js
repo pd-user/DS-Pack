@@ -64,13 +64,19 @@ async function saveRecord(record) {
         const transaction = db.transaction([STORE_RECORDS], 'readwrite');
         const store = transaction.objectStore(STORE_RECORDS);
 
-        // 添加時間戳
-        record.createdAt = new Date().toISOString();
+        // 如果是新記錄，才添加建立時間
+        if (!record.id) {
+            record.createdAt = new Date().toISOString();
+        }
 
-        const request = store.add(record);
+        // 更新最後修改時間
+        record.updatedAt = new Date().toISOString();
+
+        // 使用 put 以支援更新現有記錄 (若 ID 已存在則更新，不存在則新增)
+        const request = store.put(record);
 
         request.onsuccess = () => {
-            console.log('Record saved with ID:', request.result);
+            console.log('Record saved/updated with ID:', request.result);
             // 更新建議清單
             updateSuggestions('customer', record.customer);
             updateSuggestions('destination', record.destination);

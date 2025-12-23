@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>📸 拍照分類系統</title>
+    <title>📸 出貨照片資料庫</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
@@ -21,8 +21,8 @@
         <!-- 頁面 1: 首頁/資料輸入 -->
         <section id="page-home" class="page">
             <header class="app-header">
-                <h1>📸 拍照分類系統</h1>
-                <p class="subtitle">出貨照片記錄與管理</p>
+                <h1>📸 出貨照片管理系統</h1>
+                <p class="subtitle">照片記錄、查詢與編輯</p>
             </header>
 
             <main class="main-content">
@@ -68,7 +68,7 @@
 
                 <div class="quick-actions">
                     <button type="button" class="btn btn-secondary" id="btn-search">
-                        <span class="icon">🔍</span> 查詢記錄 Search
+                        <span class="icon">📦</span> 出貨照片資料庫 Database
                     </button>
                     <button type="button" class="btn btn-secondary" id="btn-settings">
                         <span class="icon">⚙️</span> 項目設定 Settings
@@ -118,6 +118,13 @@
                             <span class="icon">📷</span> 拍照 / 選擇照片
                             <input type="file" accept="image/*" capture="environment" multiple id="camera-input" hidden>
                         </label>
+                    </div>
+
+                    <div class="form-group item-note-group">
+                        <label for="item-note">
+                            <span class="icon">📝</span> 項目備註/規格 Item Note
+                        </label>
+                        <textarea id="item-note" placeholder="輸入此項目的說明或規格 (如：規格 300x200)..." rows="2"></textarea>
                     </div>
 
                     <div class="photo-info" id="photo-info">
@@ -175,7 +182,7 @@
                 <button class="btn-back" id="btn-back-from-search">
                     <span>←</span>
                 </button>
-                <h1>🔍 查詢記錄</h1>
+                <h1>📦 出貨照片資料庫</h1>
             </header>
 
             <main class="search-content">
@@ -223,9 +230,14 @@
                     <span>←</span>
                 </button>
                 <h1>📋 記錄詳情</h1>
-                <button class="btn-delete" id="btn-delete-record">
-                    <span>🗑️</span>
-                </button>
+                <div class="header-actions">
+                    <button class="btn-icon" id="btn-edit-record" title="編輯 Edit">
+                        <span>✏️</span>
+                    </button>
+                    <button class="btn-delete" id="btn-delete-record" title="刪除 Delete">
+                        <span>🗑️</span>
+                    </button>
+                </div>
             </header>
 
             <main class="detail-content" id="detail-content">
@@ -322,7 +334,7 @@
     </script>
     <div
         style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.3); z-index:9999; pointer-events:none;">
-        v1.2 (Search Update)</div>
+        v1.4 (Item Notes Added)</div>
 </body>
 
 </html>
