@@ -9,7 +9,8 @@ const AppState = {
     currentStep: 0,
     formData: {},
     photos: {},
-    itemNotes: {}, // 新增：存儲每一項的備註
+    itemNotes: {},
+    isQuickEdit: false, // 是否為單一項目快速編輯模式
     currentRecordId: null
 };
 
@@ -246,10 +247,6 @@ function updateCameraStep() {
     // 更新按鈕狀態
     document.getElementById('btn-prev-step').disabled = AppState.currentStep === 0;
 
-    const isLastStep = AppState.currentStep === PhotoCamera.getCategories().length - 1;
-    const nextBtn = document.getElementById('btn-next-step');
-    nextBtn.innerHTML = isLastStep ? '完成 Complete <span class="icon">✓</span>' : '下一項 Next <span class="icon">→</span>';
-
     // 顯示/隱藏選擇區域（轉換膠框）
     if (category.hasChoice && !AppState.photos[category.id]) {
         Elements.conversionChoice.classList.remove('hidden');
@@ -264,6 +261,20 @@ function updateCameraStep() {
 
     // 載入該項目的備註
     Elements.itemNote.value = AppState.itemNotes[category.id] || '';
+
+    // 如果是快速編輯模式，更換按鈕文字
+    const nextBtn = document.getElementById('btn-next');
+    const isLastStep = AppState.currentStep === PhotoCamera.getCategories().length - 1;
+
+    if (AppState.isQuickEdit) {
+        nextBtn.innerHTML = '<span>✅</span> 儲存修改 Save';
+        nextBtn.classList.add('btn-success');
+    } else {
+        nextBtn.innerHTML = isLastStep
+            ? '<span>🏁</span> 完成 Finish'
+            : '<span>→</span> 下一步 Next';
+        nextBtn.classList.remove('btn-success');
+    }
 }
 
 /**
@@ -334,9 +345,15 @@ async function handlePhotoInput(e) {
  * 上一步
  */
 function handleNextStep() {
-    // 切換前，先儲存當前項目的備註
+    // 取得當前項目
     const currentCategory = PhotoCamera.getCategories()[AppState.currentStep];
     AppState.itemNotes[currentCategory.id] = Elements.itemNote.value.trim();
+
+    // 如果是快速編輯模式，點擊「下一步」按鈕（此時已變更為儲存）即直接儲存
+    if (AppState.isQuickEdit) {
+        handleQuickSave();
+        return;
+    }
 
     if (AppState.currentStep < PhotoCamera.getCategories().length - 1) {
         AppState.currentStep++;
@@ -350,6 +367,13 @@ function handleNextStep() {
  * 處理上一步
  */
 function handlePrevStep() {
+    // 如果是快速編輯模式，按下取消/上一步直接回到詳情頁
+    if (AppState.isQuickEdit) {
+        AppState.isQuickEdit = false;
+        showRecordDetail(AppState.currentRecordId);
+        return;
+    }
+
     // 切換前，先儲存當前項目的備註
     const currentCategory = PhotoCamera.getCategories()[AppState.currentStep];
     AppState.itemNotes[currentCategory.id] = Elements.itemNote.value.trim();
@@ -538,14 +562,19 @@ async function showRecordDetail(id) {
             <div class="detail-photos-section">
         `;
 
-        PhotoCamera.getCategories().forEach(cat => {
+        PhotoCamera.getCategories().forEach((cat, index) => {
             const photos = record.photos?.[cat.id];
             const note = record.itemNotes?.[cat.id];
 
             if ((photos && photos.length > 0) || note) {
                 detailHTML += `
                     <div class="detail-photo-category">
-                        <h3>${cat.name} ${cat.nameEn} ${photos ? `(${photos.length})` : ''}</h3>
+                        <div class="category-header-row">
+                            <h3>${cat.name} ${cat.nameEn} ${photos ? `(${photos.length})` : ''}</h3>
+                            <button class="btn-edit-item" onclick="startQuickEdit(${record.id}, ${index})">
+                                ✏️ 編輯項目 Edit
+                            </button>
+                        </div>
                         ${note ? `<p class="item-detail-note">📝 ${note}</p>` : ''}
                         <div class="detail-photo-grid">
                             ${photos ? photos.map(p => `
@@ -603,6 +632,65 @@ async function handleEditRecord() {
     } catch (error) {
         console.error('Error starting edit:', error);
         showToast('載入編輯失敗', 'error');
+    }
+}
+
+/**
+ * 啟動單一項目快速編輯
+ */
+async function startQuickEdit(recordId, stepIndex) {
+    try {
+        const record = await PhotoDB.getRecord(recordId);
+        if (!record) return;
+
+        // 設定狀態
+        AppState.currentRecordId = recordId;
+        AppState.formData = {
+            date: record.date,
+            customer: record.customer,
+            destination: record.destination,
+            notes: record.notes
+        };
+        AppState.photos = record.photos || {};
+        AppState.itemNotes = record.itemNotes || {};
+        AppState.currentStep = stepIndex;
+        AppState.isQuickEdit = true;
+
+        // 顯示相機頁面
+        showPage('camera');
+        updateCameraStep();
+
+    } catch (error) {
+        console.error('Quick edit error:', error);
+    }
+}
+
+/**
+ * 快速儲存單一項目的更改
+ */
+async function handleQuickSave() {
+    try {
+        // 確保當前編輯的備註已存入 AppState
+        const currentCategory = PhotoCamera.getCategories()[AppState.currentStep];
+        AppState.itemNotes[currentCategory.id] = Elements.itemNote.value.trim();
+
+        const record = {
+            ...AppState.formData,
+            photos: AppState.photos,
+            itemNotes: AppState.itemNotes,
+            id: AppState.currentRecordId
+        };
+
+        await PhotoDB.saveRecord(record);
+        showToast('項目更新成功 Item updated!', 'success');
+
+        // 結束快速編輯模式，回到詳情頁
+        AppState.isQuickEdit = false;
+        showRecordDetail(AppState.currentRecordId);
+
+    } catch (error) {
+        console.error('Quick save error:', error);
+        showToast('儲存失敗', 'error');
     }
 }
 
