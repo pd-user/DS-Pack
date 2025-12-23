@@ -77,9 +77,8 @@ function cacheElements() {
 
     // 搜尋
     Elements.searchResults = document.getElementById('search-results');
-    Elements.searchDateFrom = document.getElementById('search-date-from');
-    Elements.searchDateTo = document.getElementById('search-date-to');
     Elements.searchCustomer = document.getElementById('search-customer');
+    Elements.searchDestination = document.getElementById('search-destination');
 
     // 其他
     Elements.completeSummary = document.getElementById('complete-summary');
@@ -160,9 +159,6 @@ function bindEvents() {
 function setTodayDate() {
     const today = new Date().toISOString().split('T')[0];
     Elements.inputDate.value = today;
-    // 預設搜尋不填日期，使用者需要再填
-    Elements.searchDateFrom.value = '';
-    Elements.searchDateTo.value = '';
 }
 
 /**
@@ -418,15 +414,14 @@ async function handleSaveRecord() {
  */
 async function handleSearch() {
     const filters = {
-        dateFrom: Elements.searchDateFrom.value || null,
-        dateTo: Elements.searchDateTo.value || null,
-        customer: Elements.searchCustomer.value.trim() || null
+        customer: Elements.searchCustomer.value.trim() || null,
+        destination: Elements.searchDestination.value.trim() || null
     };
 
     try {
         const records = await PhotoDB.searchRecords(filters);
         // 依照日期降序排列（新的在前面）
-        records.sort((a, b) => new Date(b.date) - new Date(a.date));
+        records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         displaySearchResults(records);
     } catch (error) {
         console.error('Error searching:', error);

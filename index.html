@@ -180,19 +180,14 @@
 
             <main class="search-content">
                 <div class="search-filters">
-                    <div class="filter-row">
-                        <div class="form-group">
-                            <label for="search-date-from">從</label>
-                            <input type="date" id="search-date-from">
-                        </div>
-                        <div class="form-group">
-                            <label for="search-date-to">到</label>
-                            <input type="date" id="search-date-to">
-                        </div>
+                    <div class="form-group">
+                        <label for="search-customer">客戶代碼 Customer Code</label>
+                        <input type="text" id="search-customer" placeholder="輸入搜尋..."
+                            oninput="this.value = this.value.toUpperCase()">
                     </div>
                     <div class="form-group">
-                        <label for="search-customer">客戶代碼</label>
-                        <input type="text" id="search-customer" placeholder="輸入搜尋..."
+                        <label for="search-destination">出貨地 Destination</label>
+                        <input type="text" id="search-destination" placeholder="輸入搜尋..."
                             oninput="this.value = this.value.toUpperCase()">
                     </div>
                     <div class="button-group">

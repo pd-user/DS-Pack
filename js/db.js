@@ -114,17 +114,16 @@ async function searchRecords(filters) {
     const allRecords = await getAllRecords();
 
     return allRecords.filter(record => {
-        // 日期範圍篩選
-        if (filters.dateFrom) {
-            if (record.date < filters.dateFrom) return false;
-        }
-        if (filters.dateTo) {
-            if (record.date > filters.dateTo) return false;
-        }
-
         // 客戶代碼篩選
         if (filters.customer) {
             if (!record.customer.toLowerCase().includes(filters.customer.toLowerCase())) {
+                return false;
+            }
+        }
+
+        // 出貨地篩選
+        if (filters.destination) {
+            if (!record.destination.toLowerCase().includes(filters.destination.toLowerCase())) {
                 return false;
             }
         }
