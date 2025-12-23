@@ -179,6 +179,14 @@ function bindEvents() {
     // 設定頁面
     document.getElementById('btn-settings-trigger').addEventListener('click', () => {
         showPage('settings');
+        renderCategoryList();
+    });
+    document.getElementById('btn-settings').addEventListener('click', () => {
+        showPage('settings');
+        renderCategoryList();
+    });
+    document.getElementById('btn-back-from-settings').addEventListener('click', () => {
+        showPage('search');
     });
     document.getElementById('btn-add-category').addEventListener('click', handleAddCategory);
     document.getElementById('btn-reset-categories').addEventListener('click', handleResetCategories);
