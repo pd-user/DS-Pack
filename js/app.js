@@ -5,7 +5,7 @@
 
 // 應用程式狀態
 const AppState = {
-    currentPage: 'home',
+    currentPage: 'search',
     currentStep: 0,
     formData: {},
     photos: {},
@@ -35,6 +35,9 @@ async function initApp() {
 
     // 載入建議清單
     loadSuggestions();
+
+    // 初始載入：顯示所有記錄
+    handleSearch();
 
     console.log('App initialized successfully');
 }
@@ -103,6 +106,17 @@ function bindEvents() {
     document.getElementById('btn-back-from-search').addEventListener('click', () => showPage('home'));
     document.getElementById('btn-back-from-detail').addEventListener('click', () => showPage('search'));
 
+    // 新增：首頁（拍照表單）返回搜尋頁
+    document.getElementById('btn-back-from-home') || (() => {
+        // 在 header 加一個返回按鈕供家頁面使用
+        const header = Elements.pageHome.querySelector('.app-header');
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn-back-floating';
+        backBtn.innerHTML = '<span>←</span>';
+        backBtn.onclick = () => showPage('search');
+        Elements.pageHome.prepend(backBtn);
+    })();
+
     // 拍照步驟按鈕
     document.getElementById('btn-conversion-yes').addEventListener('click', () => handleConversionChoice(true));
     document.getElementById('btn-conversion-no').addEventListener('click', () => handleConversionChoice(false));
@@ -146,8 +160,9 @@ function bindEvents() {
 function setTodayDate() {
     const today = new Date().toISOString().split('T')[0];
     Elements.inputDate.value = today;
-    Elements.searchDateFrom.value = today;
-    Elements.searchDateTo.value = today;
+    // 預設搜尋不填日期，使用者需要再填
+    Elements.searchDateFrom.value = '';
+    Elements.searchDateTo.value = '';
 }
 
 /**
@@ -403,13 +418,15 @@ async function handleSaveRecord() {
  */
 async function handleSearch() {
     const filters = {
-        dateFrom: Elements.searchDateFrom.value,
-        dateTo: Elements.searchDateTo.value,
-        customer: Elements.searchCustomer.value.trim()
+        dateFrom: Elements.searchDateFrom.value || null,
+        dateTo: Elements.searchDateTo.value || null,
+        customer: Elements.searchCustomer.value.trim() || null
     };
 
     try {
         const records = await PhotoDB.searchRecords(filters);
+        // 依照日期降序排列（新的在前面）
+        records.sort((a, b) => new Date(b.date) - new Date(a.date));
         displaySearchResults(records);
     } catch (error) {
         console.error('Error searching:', error);

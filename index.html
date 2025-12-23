@@ -19,7 +19,7 @@
 <body>
     <div id="app">
         <!-- 頁面 1: 首頁/資料輸入 -->
-        <section id="page-home" class="page active">
+        <section id="page-home" class="page">
             <header class="app-header">
                 <h1>📸 拍照分類系統</h1>
                 <p class="subtitle">出貨照片記錄與管理</p>
@@ -38,7 +38,8 @@
                         <label for="input-customer">
                             <span class="icon">🏢</span> 客戶代碼 <span class="required">*</span>
                         </label>
-                        <input type="text" id="input-customer" placeholder="請輸入客戶代碼" required list="customer-list">
+                        <input type="text" id="input-customer" placeholder="請輸入客戶代碼" required list="customer-list"
+                            oninput="this.value = this.value.toUpperCase()">
                         <datalist id="customer-list"></datalist>
                     </div>
 
@@ -46,7 +47,8 @@
                         <label for="input-destination">
                             <span class="icon">📍</span> 出貨地 <span class="required">*</span>
                         </label>
-                        <input type="text" id="input-destination" placeholder="請輸入出貨地" required list="destination-list">
+                        <input type="text" id="input-destination" placeholder="請輸入出貨地" required list="destination-list"
+                            oninput="this.value = this.value.toUpperCase()">
                         <datalist id="destination-list"></datalist>
                     </div>
 
@@ -168,7 +170,7 @@
         </section>
 
         <!-- 頁面 4: 查詢 -->
-        <section id="page-search" class="page">
+        <section id="page-search" class="page active">
             <header class="search-header">
                 <button class="btn-back" id="btn-back-from-search">
                     <span>←</span>
@@ -190,7 +192,8 @@
                     </div>
                     <div class="form-group">
                         <label for="search-customer">客戶代碼</label>
-                        <input type="text" id="search-customer" placeholder="輸入搜尋...">
+                        <input type="text" id="search-customer" placeholder="輸入搜尋..."
+                            oninput="this.value = this.value.toUpperCase()">
                     </div>
                     <div class="button-group">
                         <button class="btn btn-primary" id="btn-do-search">
