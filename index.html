@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="拍照分類系統 - 快速記錄出貨照片">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>📸 拍照分類系統</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- 頁面 1: 首頁/資料輸入 -->
+        <section id="page-home" class="page active">
+            <header class="app-header">
+                <h1>📸 拍照分類系統</h1>
+                <p class="subtitle">出貨照片記錄與管理</p>
+            </header>
+
+            <main class="main-content">
+                <form id="data-form" class="data-form">
+                    <div class="form-group">
+                        <label for="input-date">
+                            <span class="icon">📅</span> 日期
+                        </label>
+                        <input type="date" id="input-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-customer">
+                            <span class="icon">🏢</span> 客戶代碼 <span class="required">*</span>
+                        </label>
+                        <input type="text" id="input-customer" placeholder="請輸入客戶代碼" required list="customer-list">
+                        <datalist id="customer-list"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-destination">
+                            <span class="icon">📍</span> 出貨地 <span class="required">*</span>
+                        </label>
+                        <input type="text" id="input-destination" placeholder="請輸入出貨地" required list="destination-list">
+                        <datalist id="destination-list"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-notes">
+                            <span class="icon">📝</span> 備註 <span class="optional">(選填)</span>
+                        </label>
+                        <textarea id="input-notes" placeholder="輸入備註內容..." rows="3"></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <span class="icon">📷</span> 開始拍照
+                        </button>
+                    </div>
+                </form>
+
+                <div class="quick-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-search">
+                        <span class="icon">🔍</span> 查詢記錄 Search
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-settings">
+                        <span class="icon">⚙️</span> 項目設定 Settings
+                    </button>
+                </div>
+            </main>
+        </section>
+
+        <!-- 頁面 2: 拍照流程 -->
+        <section id="page-camera" class="page">
+            <header class="camera-header">
+                <button class="btn-back" id="btn-back-home">
+                    <span>←</span>
+                </button>
+                <div class="progress-info">
+                    <span id="current-step">1</span> / <span id="total-steps">8</span>
+                </div>
+                <div class="step-title" id="step-title">轉換膠框</div>
+            </header>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <main class="camera-content">
+                <!-- 轉換膠框特殊選擇 -->
+                <div id="conversion-choice" class="choice-section hidden">
+                    <h2>是否需要拍攝轉換膠框？</h2>
+                    <div class="choice-buttons">
+                        <button class="btn btn-choice btn-yes" id="btn-conversion-yes">
+                            <span class="icon">✅</span> 是
+                        </button>
+                        <button class="btn btn-choice btn-no" id="btn-conversion-no">
+                            <span class="icon">⏭️</span> 否，跳過
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 拍照區域 -->
+                <div id="photo-section" class="photo-section">
+                    <div class="photo-preview-grid" id="photo-preview-grid">
+                        <!-- 照片預覽會動態加入這裡 -->
+                    </div>
+
+                    <div class="photo-actions">
+                        <label class="btn btn-camera" id="btn-take-photo">
+                            <span class="icon">📷</span> 拍照 / 選擇照片
+                            <input type="file" accept="image/*" capture="environment" multiple id="camera-input" hidden>
+                        </label>
+                    </div>
+
+                    <div class="photo-info" id="photo-info">
+                        <div class="info-item">
+                            <span class="icon">🏢</span>
+                            <span id="info-customer">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="icon">📍</span>
+                            <span id="info-destination">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="icon">📅</span>
+                            <span id="info-date">-</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="camera-footer">
+                <button class="btn btn-secondary" id="btn-prev-step" disabled>
+                    <span class="icon">←</span> 上一項
+                </button>
+                <button class="btn btn-primary" id="btn-next-step">
+                    下一項 <span class="icon">→</span>
+                </button>
+            </footer>
+        </section>
+
+        <!-- 頁面 3: 完成確認 -->
+        <section id="page-complete" class="page">
+            <header class="app-header">
+                <h1>✅ 拍照完成</h1>
+            </header>
+
+            <main class="complete-content">
+                <div class="complete-summary" id="complete-summary">
+                    <!-- 摘要內容會動態生成 -->
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary btn-large" id="btn-save-record">
+                        <span class="icon">💾</span> 儲存記錄
+                    </button>
+                    <button class="btn btn-secondary" id="btn-cancel-record">
+                        <span class="icon">🗑️</span> 取消
+                    </button>
+                </div>
+            </main>
+        </section>
+
+        <!-- 頁面 4: 查詢 -->
+        <section id="page-search" class="page">
+            <header class="search-header">
+                <button class="btn-back" id="btn-back-from-search">
+                    <span>←</span>
+                </button>
+                <h1>🔍 查詢記錄</h1>
+            </header>
+
+            <main class="search-content">
+                <div class="search-filters">
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="search-date-from">從</label>
+                            <input type="date" id="search-date-from">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-date-to">到</label>
+                            <input type="date" id="search-date-to">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="search-customer">客戶代碼</label>
+                        <input type="text" id="search-customer" placeholder="輸入搜尋...">
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="btn-do-search">
+                            <span class="icon">🔍</span> 搜尋 Search
+                        </button>
+                    </div>
+
+                    <div class="backup-section">
+                        <h3>📦 備份管理 Backup</h3>
+                        <div class="button-group">
+                            <button class="btn btn-secondary" id="btn-backup">
+                                <span class="icon">💾</span> 完整備份 Full Backup
+                            </button>
+                            <label class="btn btn-secondary" id="btn-import">
+                                <span class="icon">📥</span> 匯入備份 Import
+                                <input type="file" accept=".json" id="import-input" hidden>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-results" id="search-results">
+                    <p class="no-results">請輸入搜尋條件</p>
+                </div>
+            </main>
+        </section>
+
+        <!-- 頁面 5: 詳情 -->
+        <section id="page-detail" class="page">
+            <header class="detail-header">
+                <button class="btn-back" id="btn-back-from-detail">
+                    <span>←</span>
+                </button>
+                <h1>📋 記錄詳情</h1>
+                <button class="btn-delete" id="btn-delete-record">
+                    <span>🗑️</span>
+                </button>
+            </header>
+
+            <main class="detail-content" id="detail-content">
+                <!-- 詳情內容會動態生成 -->
+            </main>
+        </section>
+
+        <!-- 頁面 6: 設定 -->
+        <section id="page-settings" class="page">
+            <header class="settings-header">
+                <button class="btn-back" id="btn-back-from-settings">
+                    <span>←</span>
+                </button>
+                <h1>⚙️ 項目設定 Settings</h1>
+            </header>
+
+            <main class="settings-content">
+                <div class="settings-info">
+                    <p>設定拍照項目，可新增、修改、刪除項目。</p>
+                    <p>Configure photo categories. Add, edit, or delete items.</p>
+                </div>
+
+                <div class="category-list" id="category-list">
+                    <!-- 項目列表會動態生成 -->
+                </div>
+
+                <div class="add-category-form">
+                    <h3>➕ 新增項目 Add Category</h3>
+                    <div class="form-group">
+                        <label>中文名稱 Chinese Name</label>
+                        <input type="text" id="new-category-name" placeholder="例如：外箱">
+                    </div>
+                    <div class="form-group">
+                        <label>英文名稱 English Name</label>
+                        <input type="text" id="new-category-name-en" placeholder="e.g., Outer Box">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="new-category-has-choice">
+                            需要「是/否」選擇 Has Yes/No choice
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" id="btn-add-category">
+                        <span class="icon">➕</span> 新增 Add
+                    </button>
+                </div>
+
+                <div class="settings-actions">
+                    <button class="btn btn-secondary" id="btn-reset-categories">
+                        <span class="icon">🔄</span> 重置為預設 Reset to Default
+                    </button>
+                </div>
+            </main>
+        </section>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- 照片檢視器 -->
+    <div id="photo-viewer" class="photo-viewer hidden">
+        <button class="viewer-close" id="viewer-close">✕</button>
+        <img id="viewer-image" src="" alt="照片檢視">
+    </div>
+
+    <script src="js/db.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
