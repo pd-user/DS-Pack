@@ -41,6 +41,7 @@ async function initApp() {
     // 初始載入：顯示所有記錄
     handleSearch();
 
+    prepareNewRecord(); // 確保初始是新增模式
     console.log('App initialized successfully');
 }
 
@@ -105,7 +106,10 @@ function bindEvents() {
             showPage('home');
         }
     });
-    document.getElementById('btn-back-from-search').addEventListener('click', () => showPage('home'));
+    document.getElementById('btn-back-from-search').addEventListener('click', () => {
+        prepareNewRecord();
+        showPage('home');
+    });
     document.getElementById('btn-back-from-detail').addEventListener('click', () => showPage('search'));
 
     // 新增：首頁（拍照表單）返回搜尋頁
@@ -114,7 +118,7 @@ function bindEvents() {
         const header = Elements.pageHome.querySelector('.app-header');
         const backBtn = document.createElement('button');
         backBtn.className = 'btn-back-floating';
-        backBtn.innerHTML = '<span>←</span>';
+        backBtn.innerHTML = '<span>🔙</span>';
         backBtn.onclick = () => showPage('search');
         Elements.pageHome.prepend(backBtn);
     })();
@@ -195,14 +199,29 @@ function showPage(pageName) {
 /**
  * 處理表單提交
  */
+/**
+ * 準備新增記錄（重置所有編輯狀態）
+ */
+function prepareNewRecord() {
+    AppState.currentRecordId = null;
+    AppState.isQuickEdit = false;
+    AppState.photos = {};
+    AppState.itemNotes = {};
+    AppState.currentStep = 0;
+
+    // 重置首頁標題
+    const header = Elements.pageHome.querySelector('.app-header h1');
+    header.innerHTML = '📸 出貨照片管理系統';
+
+    // 清空表單
+    if (Elements.dataForm) {
+        Elements.dataForm.reset();
+        setTodayDate();
+    }
+}
+
 function handleFormSubmit(e) {
     e.preventDefault();
-
-    // 如果不是從編輯模式進來的（標題被改過），就確保 ID 是空的
-    const header = Elements.pageHome.querySelector('.app-header h1');
-    if (!header.textContent.includes('編輯')) {
-        AppState.currentRecordId = null;
-    }
 
     AppState.formData = {
         date: Elements.inputDate.value,
