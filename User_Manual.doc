@@ -1,0 +1,88 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+    <meta charset="utf-8">
+    <title>出貨照片資料庫 操作手冊</title>
+    <style>
+        body { font-family: "微軟正黑體", sans-serif; line-height: 1.6; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #4466ee; padding-bottom: 10px; margin-bottom: 20px; }
+        h1 { color: #2244aa; }
+        h2 { color: #4466ee; border-left: 5px solid #4466ee; padding-left: 10px; margin-top: 30px; }
+        h3 { color: #333; margin-top: 20px; }
+        .version { font-size: 0.9em; color: #666; }
+        .feature-box { background-color: #f4f7ff; border: 1px solid #ccddee; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .tip { color: #d9534f; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 出貨照片資料庫 操作手冊</h1>
+        <p class="version">版本：v1.7 | 更新日期：2025年12月23日</p>
+    </div>
+
+    <h2>一、 系統概述</h2>
+    <p>本系統專為出貨流程中的照片記錄、產品規格備註及長期資料查核而設計。支援離線作業 (PWA)，確保在倉庫環境中依然穩定運作。</p>
+
+    <h2>二、 快速入門</h2>
+    <ul>
+        <li><b>網址入口：</b> 開啟手機瀏覽器輸入官網網址。</li>
+        <li><b>安裝安裝：</b> 點選「加入主畫面」，即可從手機桌面像 App 一樣開啟。</li>
+        <li><b>自動更新：</b> 看到「發現新版本」提示時點擊確定即可獲取最新功能。</li>
+    </ul>
+
+    <h2>三、 核心功能操作</h2>
+    
+    <h3>1. 查詢與搜尋 (首頁)</h3>
+    <div class="feature-box">
+        本頁面為啟動後的第一頁，可直接瀏覽最近的記錄。輸入「客戶代碼」或「出貨地」關鍵字可進行精確搜尋。
+    </div>
+
+    <h3>2. 建立新拍照記錄</h3>
+    <p>點擊右上角 <b>📸</b> 圖示進入：</p>
+    <ol>
+        <li>填寫基本資料：客戶代碼、出貨地等（自動轉大寫）。</li>
+        <li>依照步驟拍照：共 8 個預設步驟（如盒子、海綿等）。</li>
+        <li><b>項目備註：</b> 每一項拍照下方可輸入該包材的規格（如：規格 300x200）。</li>
+        <li>完成儲存：點擊「完成」並「儲存記錄」。</li>
+    </ol>
+
+    <h2>四、 編輯模式 (進階功能)</h2>
+    <p>系統提供兩種靈活的編輯方式：</p>
+    <table>
+        <tr>
+            <th>功能</th>
+            <th>操作方式</th>
+            <th>適用場景</th>
+        </tr>
+        <tr>
+            <td>🏠 全域編輯</td>
+            <td>詳情頁右上角 ✏️</td>
+            <td>修改客戶代碼、出貨地、總體備註。</td>
+        </tr>
+        <tr>
+            <td>🎯 單一項目編輯</td>
+            <td>各分類標題旁 ✏️</td>
+            <td>只想補拍某個項目的照片或修改該項目的規格。</td>
+        </tr>
+    </table>
+
+    <h2>五、 資料備份與安全性</h2>
+    <p>為了確保資料安全，系統支援資料匯出：</p>
+    <ul>
+        <li>點擊右上角 <b>💾</b> 圖示。</li>
+        <li><b>確定 (Export)：</b> 儲存目前所有機器內的資料為備份檔。</li>
+        <li><b>取消 (Import)：</b> 載入之前的備份檔以還原記錄。</li>
+    </ul>
+
+    <h2>六、 常見問題與小撇步</h2>
+    <p class="tip">💡 提示：照片檢視功能</p>
+    <p>在記錄詳情中點擊任何照片，皆可進行「全螢幕放大檢視」，方便查驗標籤上的細小文字。</p>
+
+    <div style="margin-top: 50px; text-align: center; color: #999;">
+        <hr>
+        <p>&copy; 2025 Antigravity 拍照分類系統開發組</p>
+    </div>
+</body>
+</html>
