@@ -143,20 +143,43 @@ function bindEvents() {
     // 搜尋功能
     document.getElementById('btn-do-search').addEventListener('click', handleSearch);
 
-    // 備份功能
-    document.getElementById('btn-backup').addEventListener('click', handleBackup);
-    document.getElementById('import-input').addEventListener('change', handleImport);
+    // 備份與還原
+    document.getElementById('btn-backup-trigger').addEventListener('click', () => {
+        const choice = confirm('💾 備份管理 Backup Management\n\n點擊「確定」匯出備份 (Export)\n點擊「取消」進行匯入還原 (Import)');
+        if (choice) {
+            handleBackup();
+        } else {
+            document.getElementById('import-input').click();
+        }
+    });
+
+    document.getElementById('import-input') || (() => {
+        // 匯入的 input 必須在 body 的某處，但我剛才移除了內容區，現在把它加回 hidden
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'import-input';
+        input.accept = '.json';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', handleImport);
+    })();
+
+    // 備份圖示長按或點擊後的選單改進：這裡直接讓點擊執行備份
+    // 如果需要匯入，我把邏輯併入：若長按則匯入，但簡易起見我們先直接處理
+    // 為了讓使用者能還原，我稍微調整一下：
+    document.getElementById('btn-backup-trigger').addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        document.getElementById('import-input').click();
+    });
 
     // 刪除與編輯記錄
     document.getElementById('btn-delete-record').addEventListener('click', handleDeleteRecord);
     document.getElementById('btn-edit-record').addEventListener('click', handleEditRecord);
 
     // 設定頁面
-    document.getElementById('btn-settings').addEventListener('click', () => {
+    document.getElementById('btn-settings-trigger').addEventListener('click', () => {
         showPage('settings');
-        renderCategoryList();
     });
-    document.getElementById('btn-back-from-settings').addEventListener('click', () => showPage('home'));
     document.getElementById('btn-add-category').addEventListener('click', handleAddCategory);
     document.getElementById('btn-reset-categories').addEventListener('click', handleResetCategories);
 }
