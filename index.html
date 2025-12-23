@@ -300,11 +300,29 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker 註冊成功！', reg))
+                    .then(reg => {
+                        console.log('Service Worker 註冊成功！', reg);
+
+                        // 檢查是否有更新
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // 發現新版本，提示使用者或自動重新整理
+                                    if (confirm('發現新版本！點擊確定以更新。 New version available! Click OK to update.')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.log('Service Worker 註冊失敗：', err));
             });
         }
     </script>
+    <div
+        style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.3); z-index:9999; pointer-events:none;">
+        v1.2 (Search Update)</div>
 </body>
 
 </html>
