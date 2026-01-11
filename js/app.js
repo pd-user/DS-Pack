@@ -508,8 +508,8 @@ async function handleSaveRecord() {
             itemNotes: AppState.itemNotes // 包含項目備註
         };
 
-        // 如果目前是編輯模式，則帶入 ID
-        if (AppState.currentRecordId && AppState.currentPage === 'complete') {
+        // 如果目前是編輯模式，則帶入 ID 以進行覆蓋 (Upsert)
+        if (AppState.currentRecordId) {
             record.id = AppState.currentRecordId;
         }
 
