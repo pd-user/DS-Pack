@@ -1,6 +1,6 @@
-# 📦 出貨照片資料庫 (Export Photo Database)
+這兩個辜# 📦 出貨照片資料庫 (Export Photo Database)
 
-![Version](https://img.shields.io/badge/version-1.8-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.2-blue.svg)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 
 本系統專為出貨流程中的照片管理設計，整合了 IndexedDB 本地資料庫與 PWA 技術，確保在各種環境下都能高效記錄與查詢。
