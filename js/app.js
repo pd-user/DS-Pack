@@ -265,9 +265,11 @@ function handleFormSubmit(e) {
         notes: Elements.inputNotes.value.trim()
     };
 
-    // 重置狀態
-    AppState.photos = {};
-    AppState.itemNotes = {}; // 重置
+    // 重置狀態（僅在新增模式時重置照片）
+    if (!AppState.currentRecordId) {
+        AppState.photos = {};
+        AppState.itemNotes = {};
+    }
     AppState.currentStep = 0;
     Elements.itemNote.value = ''; // 清空輸入框
 
@@ -317,7 +319,7 @@ function updateCameraStep() {
     Elements.itemNote.value = AppState.itemNotes[category.id] || '';
 
     // 如果是快速編輯模式，更換按鈕文字
-    const nextBtn = document.getElementById('btn-next');
+    const nextBtn = document.getElementById('btn-next-step');
     const isLastStep = AppState.currentStep === PhotoCamera.getCategories().length - 1;
 
     if (AppState.isQuickEdit) {
