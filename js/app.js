@@ -88,6 +88,7 @@ function cacheElements() {
     Elements.completeSummary = document.getElementById('complete-summary');
     Elements.detailContent = document.getElementById('detail-content');
     Elements.toast = document.getElementById('toast');
+    Elements.btnQuickFinish = document.getElementById('btn-quick-finish');
 }
 
 /**
@@ -131,6 +132,9 @@ function bindEvents() {
 
     // 相機輸入
     Elements.cameraInput.addEventListener('change', handlePhotoInput);
+
+    // 快速儲存（編輯模式時可用）
+    Elements.btnQuickFinish.addEventListener('click', handleQuickFinish);
 
     // 完成頁面
     document.getElementById('btn-save-record').addEventListener('click', handleSaveRecord);
@@ -256,8 +260,8 @@ function handleFormSubmit(e) {
 
     AppState.formData = {
         date: Elements.inputDate.value,
-        customer: Elements.inputCustomer.value.trim(),
-        destination: Elements.inputDestination.value.trim(),
+        customer: Elements.inputCustomer.value.trim().toUpperCase(),
+        destination: Elements.inputDestination.value.trim().toUpperCase(),
         notes: Elements.inputNotes.value.trim()
     };
 
@@ -319,11 +323,19 @@ function updateCameraStep() {
     if (AppState.isQuickEdit) {
         nextBtn.innerHTML = '<span>✅</span> 儲存修改 Save';
         nextBtn.classList.add('btn-success');
+        Elements.btnQuickFinish.classList.add('hidden'); // 快速編輯模式不需要此按鈕
     } else {
         nextBtn.innerHTML = isLastStep
             ? '<span>🏁</span> 完成 Finish'
             : '<span>→</span> 下一步 Next';
         nextBtn.classList.remove('btn-success');
+
+        // 如果目前是編輯現有記錄（非快速編輯單一項模式），顯示快速儲存按鈕
+        if (AppState.currentRecordId) {
+            Elements.btnQuickFinish.classList.remove('hidden');
+        } else {
+            Elements.btnQuickFinish.classList.add('hidden');
+        }
     }
 }
 
@@ -742,6 +754,18 @@ async function handleQuickSave() {
         console.error('Quick save error:', error);
         showToast('儲存失敗', 'error');
     }
+}
+
+/**
+ * 快速完成並儲存（用於編輯模式中途跳出儲存）
+ */
+async function handleQuickFinish() {
+    // 儲存當前步驟的照片備註
+    const currentCategory = PhotoCamera.getCategories()[AppState.currentStep];
+    AppState.itemNotes[currentCategory.id] = Elements.itemNote.value.trim();
+
+    // 呼叫原本的儲存邏輯
+    await handleSaveRecord();
 }
 
 /**

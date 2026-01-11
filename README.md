@@ -1,6 +1,6 @@
 # 📦 出貨照片資料庫 (Export Photo Database)
 
-![Version](https://img.shields.io/badge/version-1.7-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8-blue.svg)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 
 本系統專為出貨流程中的照片管理設計，整合了 IndexedDB 本地資料庫與 PWA 技術，確保在各種環境下都能高效記錄與查詢。
@@ -27,6 +27,14 @@
 *   **PWA 支援**：支援離線使用，右下角顯示版本號（目前 v1.7）。
 *   **自動大寫**：客戶代碼與出貨地自動轉換為英文大寫。
 *   **照片檢視**：支援全螢幕放大功能，並在照片上自動生成浮水印。
+
+### 3. 匯出檔檢視與離線讀取 (NEW)
+*   **離線檢視工具**：專案內含 `ExportViewer.html`，可在不依賴主程式的情況下讀取匯出的 `.json` 備份檔。
+*   **讀取照片**：將備份檔拖入檢視器即可直接瀏覽所有照片與備註。
+*   **命名與下載**：
+    *   支援**單張下載**與**批次下載**（按筆數或按全案）。
+    *   **命名邏輯**：自動設定為 `客戶代碼_出貨地_項目名稱_日期_序號.jpg`。
+*   **批次下載教學**：建議在瀏覽器設定中關閉「下載前先詢問儲存位置」，即可達成一鍵快速存入指定資料夾。
 
 ## 📥 安裝與部署
 1. 推送代碼至 GitHub 會自動透過 GitHub Pages 部署。

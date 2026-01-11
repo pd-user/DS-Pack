@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 照片管理系統 - 備份檔檢視器 (離線版)</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #333;
+        }
+
+        body {
+            font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 2.2rem;
+        }
+
+        p.subtitle {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #cbd5e0;
+            padding: 50px 20px;
+            text-align: center;
+            color: #718096;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fff;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: #f0f3ff;
+            color: var(--primary);
+        }
+
+        .stats {
+            margin: 20px 0;
+            padding: 20px;
+            background: #eef2ff;
+            border-radius: 12px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stats-info {
+            display: flex;
+            gap: 30px;
+        }
+
+        .alert-box {
+            background: #fff9db;
+            border: 1px solid #ffe066;
+            color: #856404;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .record-card {
+            border: 1px solid #edf2f7;
+            margin-top: 30px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+        }
+
+        .record-header {
+            background: #f1f5f9;
+            padding: 15px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .record-info {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .record-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .record-tag {
+            background: var(--primary);
+            color: white;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219150;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d35400;
+            transform: translateY(-1px);
+        }
+
+        .category-section {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .category-title {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-note {
+            background: #fff9db;
+            padding: 10px 15px;
+            border-left: 5px solid #fcc419;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #eee;
+            aspect-ratio: 4/3;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            cursor: zoom-in;
+            transition: 0.3s;
+        }
+
+        .photo-item img:hover {
+            transform: scale(1.05);
+        }
+
+        .download-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            transition: 0.3s;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-item:hover .download-btn {
+            opacity: 1;
+        }
+
+        .download-btn:hover {
+            background: var(--primary);
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 45px;
+            cursor: pointer;
+        }
+
+        .lightbox-dl-btn {
+            margin-top: 25px;
+            padding: 12px 40px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 100px 0;
+            color: #a0aec0;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 出貨照片備份檢視器</h1>
+            <p class="subtitle">離線照片讀取工具 - 支援批次自動命名下載</p>
+        </header>
+
+        <div id="drop-zone" class="drop-zone">
+            <span>將 <b>photo_backup_xxxx.json</b> 檔案拖曳到這裡，或點擊選擇檔案</span>
+        </div>
+        <input type="file" id="file-input" style="display: none;" accept=".json">
+
+        <!-- 提示區 -->
+        <div id="alert-box" class="alert-box">
+            💡 <b>批次下載小撇步：</b> 為了避免彈出多個確認視窗，建議將瀏覽器設定中的「下載前先詢問每個檔案的儲存位置」<b>關閉</b>。
+        </div>
+
+        <div id="stats" class="stats">
+            <div class="stats-info">
+                <span id="stat-count"></span>
+                <span id="stat-date"></span>
+            </div>
+            <button id="btn-dl-all" class="btn btn-warning">📥 批次下載全部照片 Download All</button>
+        </div>
+
+        <div id="results">
+            <div class="no-data">尚未載入備份檔案。</div>
+        </div>
+    </div>
+
+    <!-- 放大檢視 -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <img id="lightbox-img" class="lightbox-content" src="">
+        <button id="lightbox-dl-btn" class="lightbox-dl-btn">⬇️ 下載此照片 (Download)</button>
+    </div>
+
+    <a href="#" class="back-to-top" id="back-to-top">↑</a>
+
+    <script>
+        let currentRecords = [];
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const results = document.getElementById('results');
+        const stats = document.getElementById('stats');
+        const alertBox = document.getElementById('alert-box');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxDlBtn = document.getElementById('lightbox-dl-btn');
+
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.background = "#f0f3ff"; };
+        dropZone.ondragleave = () => { dropZone.style.background = "#fff"; };
+        dropZone.ondrop = (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); };
+
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    currentRecords = data.records || [];
+
+                    stats.style.display = 'flex';
+                    alertBox.style.display = 'block';
+                    document.getElementById('stat-count').innerHTML = `<b>總筆數:</b> ${currentRecords.length}`;
+                    document.getElementById('stat-date').innerHTML = `<b>備份時間:</b> ${new Date(data.exportDate).toLocaleString()}`;
+
+                    render(currentRecords);
+                } catch (err) { alert('檔案讀取失敗，請確認是否為正確的 JSON 格式。'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // 下載函數
+        function downloadPhoto(base64, filename) {
+            const a = document.createElement('a');
+            a.href = base64;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 批次下載單筆記錄
+        async function downloadRecord(recordIdx) {
+            const rc = currentRecords[recordIdx];
+            if (!rc) return;
+
+            let count = 0;
+            for (const cat in rc.photos) {
+                const photos = rc.photos[cat];
+                if (photos && photos.length > 0) {
+                    for (let i = 0; i < photos.length; i++) {
+                        // 客戶代碼_出貨地_項目名稱_日期_序號
+                        const fname = `${rc.customer}_${rc.destination}_${cat}_${rc.date}_${i + 1}.jpg`;
+                        downloadPhoto(photos[i].data, fname);
+                        count++;
+                        // 稍微延遲避免瀏覽器崩潰
+                        if (count % 10 === 0) await new Promise(r => setTimeout(r, 200));
+                    }
+                }
+            }
+            alert(`已開始下載 ${count} 張照片。`);
+        }
+
+        // 批次下載「全部」記錄
+        async function downloadAll() {
+            if (!confirm(`將開始下載全部 ${currentRecords.length} 筆記錄中的所有照片，這可能需要一點時間。確定繼續？`)) return;
+
+            let totalCount = 0;
+            for (let i = 0; i < currentRecords.length; i++) {
+                const rc = currentRecords[i];
+                for (const cat in rc.photos) {
+                    const photos = rc.photos[cat];
+                    if (photos && photos.length > 0) {
+                        for (let j = 0; j < photos.length; j++) {
+                            const fname = `${rc.customer}_${rc.destination}_${cat}_${rc.date}_${j + 1}.jpg`;
+                            downloadPhoto(photos[j].data, fname);
+                            totalCount++;
+                        }
+                    }
+                }
+                // 每處理一筆記錄稍微停頓
+                await new Promise(r => setTimeout(r, 500));
+            }
+            alert(`已觸發 ${totalCount} 張照片下載。`);
+        }
+
+        document.getElementById('btn-dl-all').onclick = downloadAll;
+
+        function openLightbox(src, filename) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+            lightboxDlBtn.onclick = () => downloadPhoto(src, filename);
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        // 關閉 Lightbox
+        lightbox.onclick = (e) => { if (e.target === lightbox) closeLightbox(); };
+
+        function render(records) {
+            results.innerHTML = records.map((rc, idx) => {
+                let sections = '';
+                let hasPhotos = false;
+
+                for (const cat in rc.photos) {
+                    const photos = rc.photos[cat];
+                    const note = rc.itemNotes ? rc.itemNotes[cat] : '';
+                    if ((photos && photos.length > 0) || note) {
+                        hasPhotos = hasPhotos || (photos && photos.length > 0);
+                        sections += `
+                            <div class="category-section">
+                                <div class="category-title">📁 項目：${cat}</div>
+                                ${note ? `<div class="item-note">📝 項目備註：${note}</div>` : ''}
+                                <div class="photo-grid">
+                                    ${(photos || []).map((p, pIdx) => {
+                            const fname = `${rc.customer}_${rc.destination}_${cat}_${rc.date}_${pIdx + 1}.jpg`;
+                            return `
+                                            <div class="photo-item">
+                                                <button class="download-btn" onclick="event.stopPropagation(); downloadPhoto('${p.data}', '${fname}')">💾</button>
+                                                <img src="${p.data}" onclick="openLightbox('${p.data}', '${fname}')" loading="lazy">
+                                            </div>`;
+                        }).join('')}
+                                </div>
+                            </div>`;
+                    }
+                }
+
+                return `
+                    <div class="record-card">
+                        <div class="record-header">
+                            <span class="record-info">📅 ${rc.date} | 🏢 ${rc.customer}</span>
+                            <div class="record-actions">
+                                <span class="record-tag">📍 ${rc.destination}</span>
+                                ${hasPhotos ? `<button class="btn btn-success" onclick="downloadRecord(${idx})">📥 下載此筆全部照片</button>` : ''}
+                            </div>
+                        </div>
+                        ${rc.notes ? `<div style="padding:15px 25px; background:#fffcf2; border-bottom:1px solid #eee;"><b>總體備註:</b> ${rc.notes}</div>` : ''}
+                        ${sections || '<p style="padding:20px; color:#999;">(此記錄無照片與備註)</p>'}
+                    </div>`;
+            }).join('');
+        }
+
+        window.onscroll = () => {
+            document.getElementById('back-to-top').style.display = (window.scrollY > 500) ? 'flex' : 'none';
+        };
+    </script>
+</body>
+
+</html>
