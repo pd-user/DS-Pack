@@ -1,4 +1,4 @@
-const CACHE_NAME = 'photo-classifier-v1.9.0';
+const CACHE_NAME = 'photo-classifier-v1.9.3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
