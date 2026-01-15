@@ -332,10 +332,11 @@
                     .then(reg => {
                         console.log('Service Worker 註冊成功！', reg);
 
-                        // 定期檢查更新 (每小時)
-                        setInterval(() => {
+                        // 💡 智能檢查更新：當網路從斷網恢復到連網時才觸發
+                        window.addEventListener('online', () => {
+                            console.log('網路已恢復，檢查更新...');
                             reg.update();
-                        }, 60 * 60 * 1000);
+                        });
 
                         // 監聽更新發現
                         reg.addEventListener('updatefound', () => {
