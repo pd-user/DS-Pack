@@ -201,10 +201,12 @@ function bindEvents() {
     document.getElementById('btn-settings-trigger').addEventListener('click', () => {
         showPage('settings');
         renderTemplateList();
+        loadBackupEmail();
     });
     document.getElementById('btn-settings').addEventListener('click', () => {
         showPage('settings');
         renderTemplateList();
+        loadBackupEmail();
     });
     document.getElementById('btn-back-from-settings').addEventListener('click', () => {
         showPage('search');
@@ -222,6 +224,9 @@ function bindEvents() {
         AppState.selectedTemplateId = e.target.value;
         AppState.selectedTemplate = PhotoDB.getTemplateById(e.target.value);
     });
+
+    // 備份郵件設定
+    document.getElementById('btn-save-email').addEventListener('click', handleSaveBackupEmail);
 }
 
 /**
@@ -1012,6 +1017,43 @@ window.openTemplateEditor = openTemplateEditor;
 window.handleDeleteTemplate = handleDeleteTemplate;
 window.handleRemoveItemFromTemplate = handleRemoveItemFromTemplate;
 window.moveItemInTemplate = moveItemInTemplate;
+
+// ===========================
+// 備份郵件管理
+// ===========================
+
+/**
+ * 載入備份郵件地址
+ */
+function loadBackupEmail() {
+    const email = PhotoDB.getBackupEmail();
+    const emailInput = document.getElementById('backup-email');
+    if (emailInput) {
+        emailInput.value = email;
+    }
+}
+
+/**
+ * 儲存備份郵件地址
+ */
+function handleSaveBackupEmail() {
+    const emailInput = document.getElementById('backup-email');
+    const email = emailInput.value.trim();
+
+    // 簡單的郵件格式驗證
+    if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        showToast('請輸入有效的郵件地址 Invalid email format', 'error');
+        return;
+    }
+
+    PhotoDB.setBackupEmail(email);
+
+    if (email) {
+        showToast('郵件地址已儲存 Email saved', 'success');
+    } else {
+        showToast('郵件地址已清除 Email cleared', 'info');
+    }
+}
 
 /**
  * 顯示 Toast 通知

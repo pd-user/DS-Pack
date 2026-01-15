@@ -17,7 +17,7 @@ async function exportFullBackup(records) {
     }
 
     const backup = {
-        version: '1.9.4', // 更新版本號
+        version: '1.9.6',
         exportDate: new Date().toISOString(),
         deviceInfo: navigator.userAgent,
         recordCount: records.length,
@@ -29,35 +29,48 @@ async function exportFullBackup(records) {
     const dateStr = new Date().toISOString().split('T')[0];
     const filename = `photo_backup_${dateStr}.json`;
 
-    // 優先嘗試使用 Web Share API (行動裝置傳送至電腦的最快方式)
-    if (navigator.canShare && navigator.share) {
-        try {
-            const file = new File([jsonContent], filename, { type: 'application/json' });
-
-            // 檢查是否可以分享檔案
-            if (navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: '📸 出貨照片備份 Photo Backup',
-                    text: `日期: ${dateStr}\n記錄筆數: ${records.length}`,
-                });
-                showToast('分享視窗已開啟 Share menu opened', 'success');
-                return; // 分享成功則不執行下載
-            }
-        } catch (error) {
-            console.error('Share failed:', error);
-            // 分享出報錯或取消，則退回到下載
-        }
-    }
-
-    // 傳統下載方式 (Fallback)
+    // 1. 先下載備份檔案
     const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     link.click();
 
-    showToast(`備份已下載 (${records.length} 筆記錄) Backup downloaded`, 'success');
+    showToast(`備份已下載 Backup downloaded: ${filename}`, 'success');
+
+    // 2. 檢查是否有設定郵件地址
+    const backupEmail = PhotoDB.getBackupEmail();
+
+    if (backupEmail) {
+        // 延遲 1 秒後開啟郵件客戶端（確保下載已開始）
+        setTimeout(() => {
+            const subject = encodeURIComponent(`📸 出貨照片備份 - ${dateStr}`);
+            const body = encodeURIComponent(
+                `您好，\n\n` +
+                `這是系統自動產生的備份郵件。\n\n` +
+                `備份資訊：\n` +
+                `- 日期：${dateStr}\n` +
+                `- 記錄筆數：${records.length}\n` +
+                `- 模板數量：${backup.templates.length}\n` +
+                `- 檔案名稱：${filename}\n\n` +
+                `請將剛才下載的備份檔案（${filename}）附加到此郵件後發送。\n\n` +
+                `---\n` +
+                `Hello,\n\n` +
+                `This is an auto-generated backup email.\n\n` +
+                `Backup Info:\n` +
+                `- Date: ${dateStr}\n` +
+                `- Records: ${records.length}\n` +
+                `- Templates: ${backup.templates.length}\n` +
+                `- Filename: ${filename}\n\n` +
+                `Please attach the downloaded backup file (${filename}) to this email before sending.\n`
+            );
+
+            const mailtoLink = `mailto:${backupEmail}?subject=${subject}&body=${body}`;
+            window.location.href = mailtoLink;
+
+            showToast('郵件客戶端已開啟 Email client opened', 'info');
+        }, 1000);
+    }
 }
 
 /**

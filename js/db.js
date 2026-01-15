@@ -382,6 +382,24 @@ function getTemplateById(id) {
     return templates.find(t => t.id === id);
 }
 
+/**
+ * 取得備份郵件地址
+ */
+function getBackupEmail() {
+    return localStorage.getItem('backupEmail') || '';
+}
+
+/**
+ * 設定備份郵件地址
+ */
+function setBackupEmail(email) {
+    if (email) {
+        localStorage.setItem('backupEmail', email.trim());
+    } else {
+        localStorage.removeItem('backupEmail');
+    }
+}
+
 // 匯出函數
 window.PhotoDB = {
     init: initDB,
@@ -401,6 +419,9 @@ window.PhotoDB = {
     updateTemplate,
     getTemplateById,
     getSelectedTemplateId,
-    setSelectedTemplateId
+    setSelectedTemplateId,
+    // 備份郵件
+    getBackupEmail,
+    setBackupEmail
 };
 

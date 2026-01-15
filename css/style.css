@@ -1288,6 +1288,22 @@ body::before {
 }
 
 /* ===========================
+   Backup Email Settings
+   =========================== */
+.backup-email-settings {
+    margin-bottom: var(--spacing-xl);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+}
+
+.backup-email-settings h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+/* ===========================
    Template Manager & Editor
    =========================== */
 .template-manager {
