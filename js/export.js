@@ -167,6 +167,65 @@ function showBackupContentModal(jsonContent, filename, backup) {
 }
 
 /**
+ * 複製備份內容到剪貼簿
+ */
+async function copyBackupContent() {
+    const content = window._backupContent;
+    if (!content) {
+        showToast('無內容可複製 No content', 'error');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(content);
+        showToast('✅ 備份內容已複製 Content copied!', 'success');
+
+        // 提示後續步驟
+        alert(
+            '備份內容已複製到剪貼簿！\n\n' +
+            '請在電腦上建立一個新的純文字檔案 (.txt 或 .json)，\n' +
+            '貼上內容後，將副檔名改為 .json 即可使用。'
+        );
+    } catch (err) {
+        console.error('Copy failed:', err);
+        // 如果自動複製失敗，則顯示文字區域讓使用者手動複製
+        const preview = document.getElementById('backup-preview');
+        if (preview) {
+            preview.classList.remove('hidden');
+            const textarea = document.getElementById('backup-content-text');
+            textarea.select();
+            document.execCommand('copy'); // 嘗試備用方案
+            showToast('請直接複製下方選取文字 Manual copy needed', 'info');
+        }
+    }
+}
+
+/**
+ * 切換備份內容預覽顯示
+ */
+function toggleBackupPreview() {
+    const preview = document.getElementById('backup-preview');
+    const toggleText = document.getElementById('preview-toggle-text');
+
+    if (preview.classList.contains('hidden')) {
+        preview.classList.remove('hidden');
+        toggleText.textContent = '隱藏內容 Hide Content';
+        // 自動選取文字
+        setTimeout(() => {
+            const textarea = document.getElementById('backup-content-text');
+            if (textarea) textarea.select();
+        }, 100);
+    } else {
+        preview.classList.add('hidden');
+        toggleText.textContent = '顯示內容 Show Content';
+    }
+}
+
+// 將輔助函數綁定到 window 以便 onclick 調用
+window.copyBackupContent = copyBackupContent;
+window.toggleBackupPreview = toggleBackupPreview;
+
+/**
  * 匯入備份
  * Import backup
  */
