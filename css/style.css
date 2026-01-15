@@ -1092,19 +1092,23 @@ body::before {
     position: fixed;
     bottom: var(--spacing-xl);
     left: 50%;
-    transform: translateX(-50%) translateY(100px);
+    transform: translateX(-50%) translateY(20px);
     background: var(--bg-card);
     color: var(--text-primary);
     padding: var(--spacing-md) var(--spacing-xl);
     border-radius: var(--radius-full);
     box-shadow: var(--shadow-lg);
     z-index: var(--z-toast);
-    transition: transform var(--transition-base);
+    transition: all var(--transition-base);
     border: 1px solid var(--border-color);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .toast.show {
     transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .toast.success {

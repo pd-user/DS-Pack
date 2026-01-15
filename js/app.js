@@ -105,6 +105,7 @@ function cacheElements() {
     Elements.newItemName = document.getElementById('new-item-name');
     Elements.newItemNameEn = document.getElementById('new-item-name-en');
     Elements.newItemHasChoice = document.getElementById('new-item-has-choice');
+    Elements.choiceTitle = document.getElementById('choice-title');
 }
 
 /**
@@ -337,8 +338,9 @@ function updateCameraStep() {
     // 更新按鈕狀態
     document.getElementById('btn-prev-step').disabled = AppState.currentStep === 0;
 
-    // 顯示/隱藏選擇區域（轉換膠框）
+    // 顯示/隱藏選擇區域（是否需要拍攝此項目）
     if (category.hasChoice && !AppState.photos[category.id]) {
+        Elements.choiceTitle.innerHTML = `是否需要拍攝「${category.name}」？<br><small>Do you need to take photos of "${category.nameEn}"?</small>`;
         Elements.conversionChoice.classList.remove('hidden');
         Elements.photoSection.classList.add('hidden');
     } else {
@@ -1014,12 +1016,17 @@ window.moveItemInTemplate = moveItemInTemplate;
 /**
  * 顯示 Toast 通知
  */
+let toastTimer = null;
 function showToast(message, type = 'info') {
+    if (toastTimer) clearTimeout(toastTimer);
+
     Elements.toast.textContent = message;
     Elements.toast.className = `toast ${type} show`;
 
-    setTimeout(() => {
+    // 3秒後自動消失
+    toastTimer = setTimeout(() => {
         Elements.toast.classList.remove('show');
+        toastTimer = null;
     }, 3000);
 }
 

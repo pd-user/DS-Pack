@@ -14,7 +14,7 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <!-- Version: 1.9.4 -->
+    <!-- Version: 1.9.5 -->
 </head>
 
 <body>
@@ -96,7 +96,7 @@
                 <div class="progress-info">
                     <span id="current-step">1</span> / <span id="total-steps">8</span>
                 </div>
-                <div class="step-title" id="step-title">轉換膠框</div>
+                <div class="step-title" id="step-title">載入中...</div>
             </header>
 
             <div class="progress-bar">
@@ -104,15 +104,14 @@
             </div>
 
             <main class="camera-content">
-                <!-- 轉換膠框特殊選擇 -->
                 <div id="conversion-choice" class="choice-section hidden">
-                    <h2>是否需要拍攝轉換膠框？</h2>
+                    <h2 id="choice-title">是否需要拍攝此項目？</h2>
                     <div class="choice-buttons">
                         <button class="btn btn-choice btn-yes" id="btn-conversion-yes">
-                            <span class="icon">✅</span> 是
+                            <span class="icon">✅</span> 是 Yes
                         </button>
                         <button class="btn btn-choice btn-no" id="btn-conversion-no">
-                            <span class="icon">⏭️</span> 否，跳過
+                            <span class="icon">⏭️</span> 否 No / Skip
                         </button>
                     </div>
                 </div>
@@ -408,7 +407,7 @@
     </script>
     <div
         style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.3); z-index:9999; pointer-events:none;">
-        v1.9.4 (Smart Export)</div>
+        v1.9.5 (Dynamic UI)</div>
 </body>
 
 </html>
