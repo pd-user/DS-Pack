@@ -7,9 +7,8 @@
  * 匯出完整備份（含照片的 JSON）
  * Export full backup with photos (JSON)
  */
-function exportFullBackup(records) {
+async function exportFullBackup(records) {
     if (!records || records.length === 0) {
-        // 即使沒有記錄，也要能匯出建議模板
         const templates = PhotoDB.getTemplates();
         if (templates.length === 0) {
             showToast('沒有記錄或模板可匯出 No data to export', 'error');
@@ -18,26 +17,47 @@ function exportFullBackup(records) {
     }
 
     const backup = {
-        version: '1.9.0',
+        version: '1.9.4', // 更新版本號
         exportDate: new Date().toISOString(),
         deviceInfo: navigator.userAgent,
         recordCount: records.length,
         records: records,
-        templates: PhotoDB.getTemplates() // 🚀 加入模板設定備份
+        templates: PhotoDB.getTemplates()
     };
 
     const jsonContent = JSON.stringify(backup, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
-    const link = document.createElement('a');
-
     const dateStr = new Date().toISOString().split('T')[0];
     const filename = `photo_backup_${dateStr}.json`;
 
+    // 優先嘗試使用 Web Share API (行動裝置傳送至電腦的最快方式)
+    if (navigator.canShare && navigator.share) {
+        try {
+            const file = new File([jsonContent], filename, { type: 'application/json' });
+
+            // 檢查是否可以分享檔案
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: '📸 出貨照片備份 Photo Backup',
+                    text: `日期: ${dateStr}\n記錄筆數: ${records.length}`,
+                });
+                showToast('分享視窗已開啟 Share menu opened', 'success');
+                return; // 分享成功則不執行下載
+            }
+        } catch (error) {
+            console.error('Share failed:', error);
+            // 分享出報錯或取消，則退回到下載
+        }
+    }
+
+    // 傳統下載方式 (Fallback)
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     link.click();
 
-    showToast(`備份已匯出 (${records.length} 筆記錄, ${backup.templates.length} 個模板) Backup exported`, 'success');
+    showToast(`備份已下載 (${records.length} 筆記錄) Backup downloaded`, 'success');
 }
 
 /**

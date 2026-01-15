@@ -478,9 +478,10 @@
                     const note = rc.itemNotes ? rc.itemNotes[cat] : '';
                     if ((photos && photos.length > 0) || note) {
                         hasPhotos = hasPhotos || (photos && photos.length > 0);
+                        const displayCatName = (rc.categoryNames && rc.categoryNames[cat]) ? rc.categoryNames[cat] : cat;
                         sections += `
                             <div class="category-section">
-                                <div class="category-title">📁 項目：${cat}</div>
+                                <div class="category-title">📁 項目：${displayCatName}</div>
                                 ${note ? `<div class="item-note">📝 項目備註：${note}</div>` : ''}
                                 <div class="photo-grid">
                                     ${(photos || []).map((p, pIdx) => {
