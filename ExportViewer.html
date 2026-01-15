@@ -414,8 +414,10 @@
                 const photos = rc.photos[cat];
                 if (photos && photos.length > 0) {
                     for (let i = 0; i < photos.length; i++) {
-                        // 客戶代碼_出貨地_項目名稱_日期_序號
-                        const fname = `${rc.customer}_${rc.destination}_${cat}_${rc.date}_${i + 1}.jpg`;
+                        // 模板名稱_客戶代碼_出貨地_項目名稱_日期_序號
+                        const itemName = (rc.categoryNames && rc.categoryNames[cat]) ? rc.categoryNames[cat] : cat;
+                        const tplName = rc.templateName || '預設模板';
+                        const fname = `${tplName}_${rc.customer}_${rc.destination}_${itemName}_${rc.date}_${i + 1}.jpg`;
                         downloadPhoto(photos[i].data, fname);
                         count++;
                         // 稍微延遲避免瀏覽器崩潰
@@ -437,7 +439,9 @@
                     const photos = rc.photos[cat];
                     if (photos && photos.length > 0) {
                         for (let j = 0; j < photos.length; j++) {
-                            const fname = `${rc.customer}_${rc.destination}_${cat}_${rc.date}_${j + 1}.jpg`;
+                            const itemName = (rc.categoryNames && rc.categoryNames[cat]) ? rc.categoryNames[cat] : cat;
+                            const tplName = rc.templateName || '預設模板';
+                            const fname = `${tplName}_${rc.customer}_${rc.destination}_${itemName}_${rc.date}_${j + 1}.jpg`;
                             downloadPhoto(photos[j].data, fname);
                             totalCount++;
                         }
@@ -480,7 +484,9 @@
                                 ${note ? `<div class="item-note">📝 項目備註：${note}</div>` : ''}
                                 <div class="photo-grid">
                                     ${(photos || []).map((p, pIdx) => {
-                            const fname = `${rc.customer}_${rc.destination}_${cat}_${rc.date}_${pIdx + 1}.jpg`;
+                            const itemName = (rc.categoryNames && rc.categoryNames[cat]) ? rc.categoryNames[cat] : cat;
+                            const tplName = rc.templateName || '預設模板';
+                            const fname = `${tplName}_${rc.customer}_${rc.destination}_${itemName}_${rc.date}_${pIdx + 1}.jpg`;
                             return `
                                             <div class="photo-item">
                                                 <button class="download-btn" onclick="event.stopPropagation(); downloadPhoto('${p.data}', '${fname}')">💾</button>

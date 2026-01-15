@@ -14,7 +14,7 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <!-- Version: 1.8.2 -->
+    <!-- Version: 1.9.0 -->
 </head>
 
 <body>
@@ -51,6 +51,15 @@
                         <input type="text" id="input-destination" placeholder="請輸入出貨地" required list="destination-list"
                             oninput="this.value = this.value.toUpperCase()">
                         <datalist id="destination-list"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-template">
+                            <span class="icon">📋</span> 選擇模板 Template <span class="required">*</span>
+                        </label>
+                        <select id="select-template" required>
+                            <option value="">載入中...</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -255,39 +264,48 @@
 
             <main class="settings-content">
                 <div class="settings-info">
-                    <p>設定拍照項目，可新增、修改、刪除項目。</p>
-                    <p>Configure photo categories. Add, edit, or delete items.</p>
+                    <p>定義不同的拍照模板，每個模板可包含不同的拍照項目。</p>
+                    <p>Manage photo templates. Each template contains specific items.</p>
                 </div>
 
-                <div class="category-list" id="category-list">
-                    <!-- 項目列表會動態生成 -->
+                <div id="template-manager" class="template-manager">
+                    <h3>📋 模板列表 Template List</h3>
+                    <div class="template-list" id="template-list">
+                        <!-- 模板列表會動態生成 -->
+                    </div>
+                    <button class="btn btn-primary" id="btn-show-add-template">
+                        <span class="icon">➕</span> 新增模板 Add Template
+                    </button>
                 </div>
 
-                <div class="add-category-form">
-                    <h3>➕ 新增項目 Add Category</h3>
-                    <div class="form-group">
-                        <label>中文名稱 Chinese Name</label>
-                        <input type="text" id="new-category-name" placeholder="例如：外箱">
+                <!-- 編輯模板彈窗/區域 -->
+                <div id="template-editor" class="template-editor hidden">
+                    <div class="editor-header">
+                        <h3 id="editor-title">編輯模板</h3>
+                        <button class="btn-icon" id="btn-close-editor">✕</button>
                     </div>
                     <div class="form-group">
-                        <label>英文名稱 English Name</label>
-                        <input type="text" id="new-category-name-en" placeholder="e.g., Outer Box">
+                        <label>模板名稱 Template Name</label>
+                        <input type="text" id="edit-template-name" placeholder="例如：一般站點">
                     </div>
-                    <div class="form-group checkbox-group">
-                        <label>
-                            <input type="checkbox" id="new-category-has-choice">
-                            需要「是/否」選擇 Has Yes/No choice
+
+                    <h4>📦 拍照項目 Items</h4>
+                    <div id="edit-items-list" class="edit-items-list">
+                        <!-- 項目列表 -->
+                    </div>
+
+                    <div class="add-item-row">
+                        <input type="text" id="new-item-name" placeholder="中文名稱">
+                        <input type="text" id="new-item-name-en" placeholder="English">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="new-item-has-choice"> 是/否
                         </label>
+                        <button class="btn btn-secondary" id="btn-add-item-to-tpl">新增項目</button>
                     </div>
-                    <button class="btn btn-primary" id="btn-add-category">
-                        <span class="icon">➕</span> 新增 Add
-                    </button>
-                </div>
 
-                <div class="settings-actions">
-                    <button class="btn btn-secondary" id="btn-reset-categories">
-                        <span class="icon">🔄</span> 重置為預設 Reset to Default
-                    </button>
+                    <div class="editor-actions">
+                        <button class="btn btn-primary" id="btn-save-template">儲存模板 Save</button>
+                    </div>
                 </div>
             </main>
         </section>
@@ -333,7 +351,7 @@
     </script>
     <div
         style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.3); z-index:9999; pointer-events:none;">
-        v1.8.2 (Fix Overwrite Logic)</div>
+        v1.9.0 (Template Management)</div>
 </body>
 
 </html>

@@ -281,93 +281,105 @@ async function compressImage(base64, maxWidth = 1200, quality = 0.8) {
 }
 
 // ===========================
-// 分類設定管理（使用 localStorage）
+// 模板與分類設定管理（使用 localStorage）
 // ===========================
 
-const STORAGE_KEY_CATEGORIES = 'photo_categories';
+const STORAGE_KEY_TEMPLATES = 'photo_templates';
+const STORAGE_KEY_SELECTED_TEMPLATE = 'selected_template_id';
 
 /**
- * 預設分類項目
+ * 取得模板列表
  */
-const DEFAULT_CATEGORIES = [
-    { id: 'conversion_frame', name: '轉換膠框', nameEn: 'Conversion Frame', hasChoice: true },
-    { id: 'box', name: '盒子', nameEn: 'Box', hasChoice: false },
-    { id: 'sponge', name: '海綿', nameEn: 'Sponge', hasChoice: false },
-    { id: 'tyvek_paper', name: '泰維克紙', nameEn: 'Tyvek Paper', hasChoice: false },
-    { id: 'bag', name: '袋子', nameEn: 'Bag', hasChoice: false },
-    { id: 'box_label', name: '盒子標籤', nameEn: 'Box Label', hasChoice: false },
-    { id: 'outer_bag_label', name: '外袋標籤', nameEn: 'Outer Bag Label', hasChoice: false },
-    { id: 'outer_box_label', name: '外箱標籤', nameEn: 'Outer Box Label', hasChoice: false }
-];
-
-/**
- * 取得分類列表
- */
-function getCategories() {
+function getTemplates() {
     try {
-        const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+        const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
         if (saved) {
             return JSON.parse(saved);
         }
     } catch (e) {
-        console.error('Error loading categories:', e);
+        console.error('Error loading templates:', e);
     }
-    return [...DEFAULT_CATEGORIES];
+    return []; // 預設不再提供預設值，由使用者自行建立
 }
 
 /**
- * 儲存分類列表
+ * 儲存模板列表
  */
-function saveCategories(categories) {
+function saveTemplates(templates) {
     try {
-        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(templates));
         return true;
     } catch (e) {
-        console.error('Error saving categories:', e);
+        console.error('Error saving templates:', e);
         return false;
     }
 }
 
 /**
- * 新增分類
+ * 新增模板
  */
-function addCategory(name, nameEn, hasChoice = false) {
-    const categories = getCategories();
-    const id = 'cat_' + Date.now();
-    categories.push({ id, name, nameEn, hasChoice });
-    saveCategories(categories);
-    return categories;
+function addTemplate(name) {
+    const templates = getTemplates();
+    const id = 'tpl_' + Date.now();
+    const newTemplate = { id, name, items: [] };
+    templates.push(newTemplate);
+    saveTemplates(templates);
+    return newTemplate;
 }
 
 /**
- * 更新分類
+ * 刪除模板
  */
-function updateCategory(id, name, nameEn, hasChoice) {
-    const categories = getCategories();
-    const index = categories.findIndex(c => c.id === id);
-    if (index !== -1) {
-        categories[index] = { id, name, nameEn, hasChoice };
-        saveCategories(categories);
+function deleteTemplate(id) {
+    let templates = getTemplates();
+    templates = templates.filter(t => t.id !== id);
+    saveTemplates(templates);
+
+    // 如果刪除的是目前選中的模板，清除選擇
+    if (getSelectedTemplateId() === id) {
+        setSelectedTemplateId(null);
     }
-    return categories;
+    return templates;
 }
 
 /**
- * 刪除分類
+ * 更新模板名稱或項目
  */
-function deleteCategoryById(id) {
-    let categories = getCategories();
-    categories = categories.filter(c => c.id !== id);
-    saveCategories(categories);
-    return categories;
+function updateTemplate(template) {
+    const templates = getTemplates();
+    const index = templates.findIndex(t => t.id === template.id);
+    if (index !== -1) {
+        templates[index] = template;
+        saveTemplates(templates);
+        return true;
+    }
+    return false;
 }
 
 /**
- * 重置為預設分類
+ * 取得目前選中的模板 ID
  */
-function resetCategories() {
-    saveCategories([...DEFAULT_CATEGORIES]);
-    return [...DEFAULT_CATEGORIES];
+function getSelectedTemplateId() {
+    return localStorage.getItem(STORAGE_KEY_SELECTED_TEMPLATE);
+}
+
+/**
+ * 設定目前選中的模板 ID
+ */
+function setSelectedTemplateId(id) {
+    if (id) {
+        localStorage.setItem(STORAGE_KEY_SELECTED_TEMPLATE, id);
+    } else {
+        localStorage.removeItem(STORAGE_KEY_SELECTED_TEMPLATE);
+    }
+}
+
+/**
+ * 取得特定模板及其項目
+ */
+function getTemplateById(id) {
+    const templates = getTemplates();
+    return templates.find(t => t.id === id);
 }
 
 // 匯出函數
@@ -381,13 +393,14 @@ window.PhotoDB = {
     getSuggestions,
     fileToBase64,
     compressImage,
-    // 分類管理
-    getCategories,
-    saveCategories,
-    addCategory,
-    updateCategory,
-    deleteCategory: deleteCategoryById,
-    resetCategories,
-    DEFAULT_CATEGORIES
+    // 模板管理
+    getTemplates,
+    saveTemplates,
+    addTemplate,
+    deleteTemplate,
+    updateTemplate,
+    getTemplateById,
+    getSelectedTemplateId,
+    setSelectedTemplateId
 };
 

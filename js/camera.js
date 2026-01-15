@@ -4,10 +4,14 @@
  */
 
 /**
- * 取得照片類別（動態從資料庫取得）
+ * 取得目前使用的模板項目
  */
 function getPhotoCategories() {
-    return PhotoDB.getCategories();
+    const templateId = PhotoDB.getSelectedTemplateId();
+    if (!templateId) return [];
+
+    const template = PhotoDB.getTemplateById(templateId);
+    return template ? template.items : [];
 }
 
 /**

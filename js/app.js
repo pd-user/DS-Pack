@@ -11,7 +11,10 @@ const AppState = {
     photos: {},
     itemNotes: {},
     isQuickEdit: false, // 是否為單一項目快速編輯模式
-    currentRecordId: null
+    currentRecordId: null,
+    selectedTemplateId: null,
+    selectedTemplate: null, // 當前使用的模板物件
+    editingTemplate: null  // 正在編輯中的模板暫存
 };
 
 // DOM 元素快取
@@ -37,6 +40,9 @@ async function initApp() {
 
     // 載入建議清單
     loadSuggestions();
+
+    // 載入模板清單
+    loadTemplates();
 
     // 初始載入：顯示所有記錄
     handleSearch();
@@ -89,6 +95,16 @@ function cacheElements() {
     Elements.detailContent = document.getElementById('detail-content');
     Elements.toast = document.getElementById('toast');
     Elements.btnQuickFinish = document.getElementById('btn-quick-finish');
+
+    // 模板管理 (New)
+    Elements.selectTemplate = document.getElementById('select-template');
+    Elements.templateList = document.getElementById('template-list');
+    Elements.templateEditor = document.getElementById('template-editor');
+    Elements.editTemplateName = document.getElementById('edit-template-name');
+    Elements.editItemsList = document.getElementById('edit-items-list');
+    Elements.newItemName = document.getElementById('new-item-name');
+    Elements.newItemNameEn = document.getElementById('new-item-name-en');
+    Elements.newItemHasChoice = document.getElementById('new-item-has-choice');
 }
 
 /**
@@ -183,17 +199,28 @@ function bindEvents() {
     // 設定頁面
     document.getElementById('btn-settings-trigger').addEventListener('click', () => {
         showPage('settings');
-        renderCategoryList();
+        renderTemplateList();
     });
     document.getElementById('btn-settings').addEventListener('click', () => {
         showPage('settings');
-        renderCategoryList();
+        renderTemplateList();
     });
     document.getElementById('btn-back-from-settings').addEventListener('click', () => {
         showPage('search');
     });
-    document.getElementById('btn-add-category').addEventListener('click', handleAddCategory);
-    document.getElementById('btn-reset-categories').addEventListener('click', handleResetCategories);
+
+    // 模板管理事件
+    document.getElementById('btn-show-add-template').addEventListener('click', () => openTemplateEditor());
+    document.getElementById('btn-close-editor').addEventListener('click', () => Elements.templateEditor.classList.add('hidden'));
+    document.getElementById('btn-add-item-to-tpl').addEventListener('click', handleAddItemToTemplate);
+    document.getElementById('btn-save-template').addEventListener('click', handleSaveTemplate);
+
+    // 監聽模板選擇變化
+    Elements.selectTemplate.addEventListener('change', (e) => {
+        PhotoDB.setSelectedTemplateId(e.target.value);
+        AppState.selectedTemplateId = e.target.value;
+        AppState.selectedTemplate = PhotoDB.getTemplateById(e.target.value);
+    });
 }
 
 /**
@@ -262,8 +289,15 @@ function handleFormSubmit(e) {
         date: Elements.inputDate.value,
         customer: Elements.inputCustomer.value.trim().toUpperCase(),
         destination: Elements.inputDestination.value.trim().toUpperCase(),
-        notes: Elements.inputNotes.value.trim()
+        notes: Elements.inputNotes.value.trim(),
+        templateId: Elements.selectTemplate.value,
+        templateName: AppState.selectedTemplate ? AppState.selectedTemplate.name : ''
     };
+
+    if (!AppState.formData.templateId) {
+        showToast('請選擇模板 Please select a template', 'error');
+        return;
+    }
 
     // 重置狀態（僅在新增模式時重置照片）
     if (!AppState.currentRecordId) {
@@ -505,7 +539,13 @@ async function handleSaveRecord() {
         const record = {
             ...AppState.formData,
             photos: AppState.photos,
-            itemNotes: AppState.itemNotes // 包含項目備註
+            itemNotes: AppState.itemNotes,
+            // 儲存當下的模板資訊，確保未來命名正確
+            templateName: AppState.formData.templateName,
+            categoryNames: PhotoCamera.getCategories().reduce((acc, cat) => {
+                acc[cat.id] = cat.name;
+                return acc;
+            }, {})
         };
 
         // 如果目前是編輯模式，則帶入 ID 以進行覆蓋 (Upsert)
@@ -819,112 +859,157 @@ async function handleImport(e) {
     e.target.value = '';
 }
 
-// ===========================
-// 設定頁面功能
-// ===========================
-
 /**
- * 渲染分類列表
+ * 載入模板清單
  */
-function renderCategoryList() {
-    const categories = PhotoDB.getCategories();
-    const listEl = document.getElementById('category-list');
+function loadTemplates() {
+    const templates = PhotoDB.getTemplates();
+    const selectedId = PhotoDB.getSelectedTemplateId();
 
-    if (categories.length === 0) {
-        listEl.innerHTML = '<p class="no-results">沒有設定任何項目 No categories configured</p>';
+    let html = '<option value="">-- 請選擇模板 --</option>';
+    html += templates.map(t => `<option value="${t.id}" ${t.id === selectedId ? 'selected' : ''}>${t.name}</option>`).join('');
+
+    Elements.selectTemplate.innerHTML = html;
+
+    // 更新 AppState
+    if (selectedId) {
+        AppState.selectedTemplateId = selectedId;
+        AppState.selectedTemplate = PhotoDB.getTemplateById(selectedId);
+    }
+}
+
+// ===========================
+// 模板管理功能
+// ===========================
+
+function renderTemplateList() {
+    const templates = PhotoDB.getTemplates();
+    if (templates.length === 0) {
+        Elements.templateList.innerHTML = '<p class="no-results">目前沒有模板，請新增。 No templates found.</p>';
         return;
     }
 
-    listEl.innerHTML = categories.map((cat, index) => `
-        <div class="category-item" data-id="${cat.id}">
-            <div class="category-order">${index + 1}</div>
-            <div class="category-info">
-                <div class="category-name">${cat.name}</div>
-                <div class="category-name-en">${cat.nameEn}</div>
+    Elements.templateList.innerHTML = templates.map(t => `
+        <div class="template-item">
+            <div class="template-info">
+                <div class="template-name">${t.name}</div>
+                <div class="template-meta">${t.items.length} 個項目</div>
             </div>
-            ${cat.hasChoice ? '<span class="category-badge">是/否選擇</span>' : ''}
-            <div class="category-actions">
-                <button class="btn-icon btn-edit" title="編輯 Edit" onclick="editCategory('${cat.id}')">✏️</button>
-                <button class="btn-icon btn-delete-cat" title="刪除 Delete" onclick="deleteCategory('${cat.id}')">🗑️</button>
+            <div class="template-actions">
+                <button class="btn-icon" onclick="openTemplateEditor('${t.id}')" title="編輯項目">✏️</button>
+                <button class="btn-icon" onclick="handleDeleteTemplate('${t.id}')" title="刪除選單">🗑️</button>
             </div>
         </div>
     `).join('');
 }
 
-/**
- * 新增分類
- */
-function handleAddCategory() {
-    const nameInput = document.getElementById('new-category-name');
-    const nameEnInput = document.getElementById('new-category-name-en');
-    const hasChoiceInput = document.getElementById('new-category-has-choice');
-
-    const name = nameInput.value.trim();
-    const nameEn = nameEnInput.value.trim();
-    const hasChoice = hasChoiceInput.checked;
-
-    if (!name || !nameEn) {
-        showToast('請填寫中英文名稱 Please fill in both names', 'error');
-        return;
+function openTemplateEditor(id = null) {
+    if (id) {
+        const t = PhotoDB.getTemplateById(id);
+        AppState.editingTemplate = JSON.parse(JSON.stringify(t));
+        document.getElementById('editor-title').textContent = '編輯模板 Edit Template';
+    } else {
+        AppState.editingTemplate = { id: null, name: '', items: [] };
+        document.getElementById('editor-title').textContent = '新增模板 Add Template';
     }
 
-    PhotoDB.addCategory(name, nameEn, hasChoice);
-
-    // 清空表單
-    nameInput.value = '';
-    nameEnInput.value = '';
-    hasChoiceInput.checked = false;
-
-    renderCategoryList();
-    showToast('已新增項目 Category added', 'success');
+    Elements.editTemplateName.value = AppState.editingTemplate.name;
+    renderEditItems();
+    Elements.templateEditor.classList.remove('hidden');
 }
 
-/**
- * 編輯分類
- */
-function editCategory(id) {
-    const categories = PhotoDB.getCategories();
-    const cat = categories.find(c => c.id === id);
-    if (!cat) return;
-
-    const newName = prompt('中文名稱 Chinese Name:', cat.name);
-    if (newName === null) return;
-
-    const newNameEn = prompt('英文名稱 English Name:', cat.nameEn);
-    if (newNameEn === null) return;
-
-    const hasChoice = confirm('是否需要「是/否」選擇？\nDoes this category need Yes/No choice?');
-
-    PhotoDB.updateCategory(id, newName.trim() || cat.name, newNameEn.trim() || cat.nameEn, hasChoice);
-    renderCategoryList();
-    showToast('已更新項目 Category updated', 'success');
+function renderEditItems() {
+    const items = AppState.editingTemplate.items;
+    Elements.editItemsList.innerHTML = items.map((item, index) => `
+        <div class="edit-item-row-display">
+            <div class="item-reorder-btns">
+                <button class="btn-icon-sm" onclick="moveItemInTemplate(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                <button class="btn-icon-sm" onclick="moveItemInTemplate(${index}, 1)" ${index === items.length - 1 ? 'disabled' : ''}>▼</button>
+            </div>
+            <span class="item-name-text">${index + 1}. ${item.name} (${item.nameEn}) ${item.hasChoice ? '✓' : ''}</span>
+            <button class="btn-icon" onclick="handleRemoveItemFromTemplate(${index})">✕</button>
+        </div>
+    `).join('');
 }
 
-/**
- * 刪除分類
- */
-function deleteCategory(id) {
-    if (!confirm('確定要刪除此項目嗎？\nAre you sure to delete this category?')) return;
+function moveItemInTemplate(index, direction) {
+    const items = AppState.editingTemplate.items;
+    const newIndex = index + direction;
 
-    PhotoDB.deleteCategory(id);
-    renderCategoryList();
-    showToast('已刪除項目 Category deleted', 'success');
+    if (newIndex < 0 || newIndex >= items.length) return;
+
+    // 交換位置
+    const temp = items[index];
+    items[index] = items[newIndex];
+    items[newIndex] = temp;
+
+    // 行動裝置震動回饋
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    renderEditItems();
 }
 
-/**
- * 重置為預設分類
- */
-function handleResetCategories() {
-    if (!confirm('確定要重置為預設項目嗎？自訂項目將會遺失。\nReset to default? Custom categories will be lost.')) return;
+function handleAddItemToTemplate() {
+    const name = Elements.newItemName.value.trim();
+    const nameEn = Elements.newItemNameEn.value.trim();
+    const hasChoice = Elements.newItemHasChoice.checked;
 
-    PhotoDB.resetCategories();
-    renderCategoryList();
-    showToast('已重置為預設項目 Reset to default', 'success');
+    if (!name) return showToast('請輸入項目名稱', 'error');
+
+    AppState.editingTemplate.items.push({
+        id: 'item_' + Date.now() + Math.random().toString(36).substr(2, 5),
+        name,
+        nameEn,
+        hasChoice
+    });
+
+    Elements.newItemName.value = '';
+    Elements.newItemNameEn.value = '';
+    Elements.newItemHasChoice.checked = false;
+    renderEditItems();
 }
 
-// 設為全域函數供 HTML onclick 使用
-window.editCategory = editCategory;
-window.deleteCategory = deleteCategory;
+function handleRemoveItemFromTemplate(index) {
+    AppState.editingTemplate.items.splice(index, 1);
+    renderEditItems();
+}
+
+async function handleSaveTemplate() {
+    const name = Elements.editTemplateName.value.trim();
+    if (!name) return showToast('請填寫模板名稱', 'error');
+
+    AppState.editingTemplate.name = name;
+
+    if (AppState.editingTemplate.id) {
+        PhotoDB.updateTemplate(AppState.editingTemplate);
+    } else {
+        PhotoDB.addTemplate(name);
+        // 如果是剛新增，我們需要把 items 塞回去 (因為上面的 addTemplate 只收 name)
+        const templates = PhotoDB.getTemplates();
+        const newT = templates[templates.length - 1];
+        newT.items = AppState.editingTemplate.items;
+        PhotoDB.updateTemplate(newT);
+    }
+
+    Elements.templateEditor.classList.add('hidden');
+    renderTemplateList();
+    loadTemplates();
+    showToast('模板儲存成功 Template saved', 'success');
+}
+
+function handleDeleteTemplate(id) {
+    if (!confirm('確定要刪除此模板嗎？')) return;
+    PhotoDB.deleteTemplate(id);
+    renderTemplateList();
+    loadTemplates();
+    showToast('模板已刪除 Template deleted', 'success');
+}
+
+// 設為全域函數
+window.openTemplateEditor = openTemplateEditor;
+window.handleDeleteTemplate = handleDeleteTemplate;
+window.handleRemoveItemFromTemplate = handleRemoveItemFromTemplate;
+window.moveItemInTemplate = moveItemInTemplate;
 
 /**
  * 顯示 Toast 通知
